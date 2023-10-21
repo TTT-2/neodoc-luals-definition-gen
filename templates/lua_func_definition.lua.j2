@@ -1,0 +1,37 @@
+---@meta
+
+{%~ match section %}
+{% when Some with (section) %}
+{{ section }} = {}
+{%- when None -%}
+{% endmatch %}
+
+{%~ for function in functions %}
+---[{{ function.realm|upper }}] {{ function.description }}
+---
+---[(View on GitHub)]({{ function.github_source }})
+---
+{% match function.params -%}
+{%- when Some with (params) -%}
+{%- for param in params -%}
+---@param {{ param.name }} {{ param.type }} {{ param.description }}
+{% endfor %}
+{%- when None -%}
+{%- endmatch %}
+{%- match function.return -%}
+{%- when Some with (return) -%}
+---@return {{ return.type }} #{{ return.description }}
+{%~ when None -%}
+{%- endmatch %}
+{%- match function.deprecated -%}
+{%- when Some with (_) -%}
+---@deprecated
+{%~ when None -%}
+{%- endmatch %}
+{%- match function.package -%}
+{% when Some with (_) -%}
+---@package
+{%~ when None -%}
+{% endmatch -%}
+function {{ function.name }}({{ function.param_list }}) end
+{% endfor %}

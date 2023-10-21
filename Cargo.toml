@@ -1,0 +1,25 @@
+[package]
+name = "neodoc-luals-definition-gen"
+version = "0.1.0"
+authors = ["Histalek"]
+edition = "2021"
+description = "Generates luals definition files from NeoDoc json output"
+repository = ""
+license = ""
+publish = false
+
+[dependencies]
+askama = { version = "0.12.1", default-features = false }
+glob = { version = "0.3.1", default-features = false }
+serde = { version = "1.0.189", default-features = false, features = [
+    "std",
+    "serde_derive",
+] }
+serde_json = { version = "1.0.107", default-features = false, features = [
+    "std",
+] }
+tracing = { version = "0.1.40", default-features = false }
+tracing-subscriber = { version = "0.3.17", default-features = false, features = [
+    "fmt",
+    "ansi",
+] }
