@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
+    "diagnostics.globals": [
+        "entmeta",
+        "plymeta",
+        "plyspawn",
+        "targetid"
+    ],
+    "runtime.version": "Lua 5.1",
+    "workspace.library": [
+        "<basepath>/luttje/glua-api-snippets/library/"
+    ]
+}
