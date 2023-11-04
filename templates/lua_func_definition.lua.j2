@@ -2,6 +2,13 @@
 
 {%~ match section %}
 {% when Some with (section) %}
+{%- match wrapper %}
+{% when Some with (wrapper) %}
+{%- if wrapper == "class" %}
+---@class {{ section }}
+{%- endif %}
+{%- when None -%}
+{% endmatch %}
 {{ section }} = {}
 {%- when None -%}
 {% endmatch %}

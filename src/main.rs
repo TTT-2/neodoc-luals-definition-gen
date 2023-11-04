@@ -50,6 +50,9 @@ fn main() {
                         let datastructure = datastructure.unwrap().path();
                         if datastructure.is_dir() {
                             let mut lua_definition = LuaModuleFile {
+                                wrapper: wrapper
+                                    .file_name()
+                                    .map(|w| w.to_string_lossy().to_string()),
                                 section: module_name.clone(),
                                 functions: vec![],
                             };

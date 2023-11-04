@@ -113,6 +113,7 @@ impl Display for Realm {
 #[derive(Template, Debug)]
 #[template(path = "lua_func_definition.lua.j2", escape = "none")]
 pub struct LuaModuleFile {
+    pub wrapper: Option<String>,
     pub section: Option<String>,
     pub functions: Vec<LuaFuncDefinition>,
 }
