@@ -53,7 +53,7 @@ fn main() {
                                 functions: vec![],
                             };
                             for neodoc_func in glob(
-                                &format!("{}/*/*.json", datastructure.to_str().unwrap())
+                                &format!("{}/**/*.json", datastructure.to_string_lossy())
                                     .to_string(),
                             )
                             .expect("Reading glob pattern failed.")
