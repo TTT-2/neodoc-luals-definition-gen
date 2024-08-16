@@ -4,19 +4,29 @@ use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
-use tracing::error;
+use tracing::warn;
 
 const TTT2_REPO_URL: &str = "https://github.com/TTT-2/TTT2/tree/master";
 
 pub fn read_neodoc_json(path: PathBuf) -> Option<NeodocFuncDefinition> {
-    let file = File::open(&path).unwrap();
+    let file_open = File::open(&path);
+    let file = match file_open {
+        Ok(file) => file,
+        Err(_e) => {
+            warn!(
+                "Failed to open file at {}. Skipping.",
+                &path.into_os_string().to_string_lossy()
+            );
+            return None;
+        }
+    };
     let reader = BufReader::new(file);
     match serde_json::from_reader(reader) {
         Ok(expr) => expr,
         Err(e) => {
-            error!(
-                "Cannot deserializing struct from '{}' because of '{}'. Skipping.",
-                &path.into_os_string().into_string().unwrap(),
+            warn!(
+                "Cannot deserialize struct from '{}' because of '{}'. Skipping.",
+                &path.into_os_string().to_string_lossy(),
                 e
             );
             None
@@ -24,10 +34,11 @@ pub fn read_neodoc_json(path: PathBuf) -> Option<NeodocFuncDefinition> {
     }
 }
 
+#[must_use]
 pub fn neodoc_to_func_definition(nfd: NeodocFuncDefinition) -> LuaFuncDefinition {
     LuaFuncDefinition {
         name: nfd.name,
-        realm: nfd.realm.clone(),
+        realm: nfd.realm,
         r#return: neodoc_to_lua_return(nfd.params.r#return),
         r#_type: nfd.r#type,
         github_source: get_github_source(&nfd.source),
@@ -45,8 +56,8 @@ fn neodoc_to_lua_params(params: &Option<Vec<NeodocFuncParam>>) -> Option<Vec<Lua
             let mut luafuncparams: Vec<LuaFuncParam> = vec![];
             for param in params {
                 let luafuncparam = LuaFuncParam {
-                    name: param.name.to_string(),
-                    description: param.description.to_owned()?,
+                    name: param.name.clone(),
+                    description: param.description.clone()?,
                     r#type: param.typs.join(", "),
                 };
                 luafuncparams.push(luafuncparam);
@@ -62,37 +73,33 @@ fn neodoc_to_lua_return(freturns: Option<Vec<NeodocFuncReturn>>) -> Option<LuaFu
     match freturns {
         Some(freturn) => Some(LuaFuncReturn {
             r#type: freturn.first()?.typs.join("|"),
-            description: freturn.first()?.description.clone()?.to_string(),
+            description: freturn.first()?.description.clone()?,
         }),
         None => None,
     }
 }
 
 fn join_description(descriptions: Option<Vec<NeodocFuncDescription>>) -> String {
-    match descriptions {
-        Some(expr) => expr.first().unwrap().text.to_string(),
-        None => "".to_string(),
-    }
+    descriptions.map_or_else(String::new, |expr| {
+        expr.first().map_or_else(String::new, |x| x.text.clone())
+    })
 }
 
 fn join_param_list(params: Option<Vec<NeodocFuncParam>>) -> String {
-    match params {
-        Some(params) => {
-            let mut namelist = vec![];
-            for param in params {
-                namelist.push(param.name);
-            }
-            namelist.join(", ")
+    params.map_or_else(String::new, |params| {
+        let mut namelist = vec![];
+        for param in params {
+            namelist.push(param.name);
         }
-        None => "".to_string(),
-    }
+        namelist.join(", ")
+    })
 }
 
 fn get_github_source(source: &NeodocFuncSource) -> String {
     format!("{TTT2_REPO_URL}{}#L{}", source.file, source.line)
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Copy)]
 #[serde(rename_all = "lowercase")]
 pub enum Realm {
     Client,
@@ -101,11 +108,11 @@ pub enum Realm {
 }
 
 impl Display for Realm {
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Realm::Client => write!(f, "Client"),
-            Realm::Server => write!(f, "Server"),
-            Realm::Shared => write!(f, "Shared"),
+            Self::Client => write!(f, "Client"),
+            Self::Server => write!(f, "Server"),
+            Self::Shared => write!(f, "Shared"),
         }
     }
 }

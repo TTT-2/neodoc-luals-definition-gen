@@ -10,9 +10,6 @@ publish = false
 
 [dependencies]
 
-# used to simplify errorhandling
-anyhow = "1"
-
 # used for templating output files
 [dependencies.askama]
 version = "0.12"

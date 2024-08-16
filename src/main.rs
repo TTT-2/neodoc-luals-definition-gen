@@ -1,4 +1,3 @@
-use anyhow::Result;
 use askama::Template;
 use glob::glob;
 use serde_json::Value;
@@ -7,43 +6,81 @@ use std::fs;
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Write};
 use std::path::PathBuf;
-use tracing::{error, info};
+use tracing::{error, info, warn};
 
-mod neodoc_parser;
-use neodoc_parser::*;
+pub mod neodoc_parser;
+use neodoc_parser::{neodoc_to_func_definition, read_neodoc_json, LuaModuleFile};
 
-fn main() {
+fn init_tracing() {
     tracing_subscriber::fmt()
         .without_time()
         .with_target(false)
         .with_max_level(tracing::Level::WARN)
         .init();
-    let args: Vec<String> = env::args().collect();
-    let input_dir = &args[1];
-    let output_dir = PathBuf::from(&args[2])
-        .canonicalize()
-        .expect("Could not get canonicalized path for output directory. Does the directory exist?")
-        .to_string_lossy()
-        .to_string();
+}
 
-    for wrapper in fs::read_dir(input_dir).unwrap() {
-        let wrapper = wrapper.unwrap().path();
+fn handle_args() -> (fs::ReadDir, String) {
+    let args: Vec<String> = env::args().collect();
+    let input_dir = match fs::read_dir(&args[1]) {
+        Ok(input_dir) => input_dir,
+        Err(e) => {
+            error!("Could not read input directory: {}", e);
+            std::process::exit(1)
+        }
+    };
+    let output_dir = match PathBuf::from(&args[2]).canonicalize() {
+        Ok(output_dir) => output_dir.to_string_lossy().to_string(),
+        Err(e) => {
+            error!("Could not get path for output directory: {}", e);
+            std::process::exit(1)
+        }
+    };
+
+    (input_dir, output_dir)
+}
+
+fn main() {
+    init_tracing();
+
+    let (input_dir, output_dir) = handle_args();
+
+    for wrapper in input_dir {
+        let wrapper = match wrapper {
+            Ok(wrapper) => wrapper.path(),
+            Err(e) => {
+                warn!("Could not read wrapper dir: {}", e);
+                continue;
+            }
+        };
         if wrapper.is_dir() {
             for section in fs::read_dir(&wrapper).unwrap() {
-                let section = section.unwrap().path();
+                let section = match section {
+                    Ok(section) => section.path(),
+                    Err(e) => {
+                        warn!("Could not read section dir: {}", e);
+                        continue;
+                    }
+                };
                 if section.is_dir() {
                     let detail_json_path =
                         PathBuf::from(format!("{}/detail.json", section.to_string_lossy()));
                     let buf_reader = BufReader::new(
                         File::open(detail_json_path).expect("Error while openening detail.json"),
                     );
-                    let detail_json: Value = serde_json::from_reader(buf_reader).unwrap();
+                    let detail_json: Value = serde_json::from_reader(buf_reader)
+                        .unwrap_or_else(|_| Value::String(String::new()));
                     let module_name: Option<String> = detail_json
                         .get("data")
                         .and_then(|value| value.get("name"))
                         .map(|value| value.to_string().replace('"', ""));
                     for datastructure in fs::read_dir(&section).unwrap() {
-                        let datastructure = datastructure.unwrap().path();
+                        let datastructure = match datastructure {
+                            Ok(datastructure) => datastructure.path(),
+                            Err(e) => {
+                                warn!("Could not read datastructure dir: {}", e);
+                                continue;
+                            }
+                        };
                         if datastructure.is_dir() {
                             let mut lua_definition = LuaModuleFile {
                                 wrapper: wrapper
@@ -53,8 +90,7 @@ fn main() {
                                 functions: vec![],
                             };
                             for neodoc_func in glob(
-                                &format!("{}/**/*.json", datastructure.to_string_lossy())
-                                    .to_string(),
+                                &format!("{}/**/*.json", datastructure.to_string_lossy()).clone(),
                             )
                             .expect("Reading glob pattern failed.")
                             {
@@ -76,13 +112,19 @@ fn main() {
                             let filepath = format!(
                                 "{}/{}.lua",
                                 &output_dir,
-                                section.file_name().unwrap().to_string_lossy()
+                                section
+                                    .file_name()
+                                    .expect("This should always be a regular file.")
+                                    .to_string_lossy()
                             );
-                            let file = File::create(&filepath).unwrap();
-                            match render_definition_file(file, lua_definition) {
-                                Ok(()) => continue,
-                                Err(e) => error!("Error writing {} : {}", &filepath, e),
-                            }
+                            let file = match File::create(&filepath) {
+                                Ok(file) => file,
+                                Err(e) => {
+                                    error!("Error creating file at {} : {}", &filepath, e);
+                                    continue;
+                                }
+                            };
+                            render_definition_file(file, &filepath, &lua_definition);
                         }
                     }
                 }
@@ -91,12 +133,32 @@ fn main() {
     }
 }
 
-fn render_definition_file(file: File, lua_def: LuaModuleFile) -> Result<()> {
+fn render_definition_file(file: File, filepath: &String, lua_def: &LuaModuleFile) {
     let mut buf_writer = BufWriter::new(file);
 
-    let template_str = lua_def.render()?;
-    write!(buf_writer, "{}", &template_str)?;
+    let template_str = match lua_def.render() {
+        Ok(template_str) => template_str,
+        Err(e) => {
+            error!("Could not render template for filepath {}: {}", filepath, e);
+            return;
+        }
+    };
 
-    buf_writer.flush()?;
-    Ok(())
+    match write!(buf_writer, "{}", &template_str) {
+        Ok(()) => (),
+        Err(e) => {
+            error!("Could not write template for filepath {}: {}", filepath, e);
+            return;
+        }
+    };
+
+    match buf_writer.flush() {
+        Ok(()) => (),
+        Err(e) => {
+            error!(
+                "Could not flush writer for template at filepath {}: {}",
+                filepath, e
+            );
+        }
+    };
 }
