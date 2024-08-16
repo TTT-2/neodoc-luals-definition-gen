@@ -4,23 +4,181 @@ version = "0.1.0"
 authors = ["Histalek"]
 edition = "2021"
 description = "Generates luals definition files from NeoDoc json output"
-repository = ""
-license = ""
+repository = "https://github.com/TTT-2/neodoc-luals-definition-gen"
+license = "MIT"
 publish = false
 
 [dependencies]
-anyhow = "1.0.75"
-askama = { version = "0.12.1", default-features = false }
-glob = { version = "0.3.1", default-features = false }
-serde = { version = "1.0.189", default-features = false, features = [
-    "std",
-    "serde_derive",
-] }
-serde_json = { version = "1.0.107", default-features = false, features = [
-    "std",
-] }
-tracing = { version = "0.1.40", default-features = false }
-tracing-subscriber = { version = "0.3.17", default-features = false, features = [
-    "fmt",
-    "ansi",
-] }
+
+# used to simplify errorhandling
+anyhow = "1"
+
+# used for templating output files
+[dependencies.askama]
+version = "0.12"
+default-features = false
+
+# used for filtering input files
+[dependencies.glob]
+version = "0.3"
+default-features = false
+
+# used for (de)serialization
+[dependencies.serde]
+version = "1"
+default-features = false
+features = ["std", "serde_derive"]
+[dependencies.serde_json]
+version = "1"
+default-features = false
+features = ["std"]
+
+# used for logging output
+[dependencies.tracing]
+version = "0.1"
+default-features = false
+[dependencies.tracing-subscriber]
+version = "0.3"
+default-features = false
+features = ["fmt", "ansi"]
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_abi = "warn"
+noop_method_call = "warn"
+explicit_outlives_requirements = "warn"
+unused_extern_crates = "warn"
+unused_import_braces = "warn"
+unused_lifetimes = "warn"
+unused_qualifications = "warn"
+unused_macro_rules = "warn"
+dead_code = "warn"
+elided_lifetimes_in_paths = "warn"
+macro_use_extern_crate = "warn"
+single_use_lifetimes = "warn"
+unsafe_op_in_unsafe_fn = "warn"
+unit_bindings = "warn"
+absolute-paths-not-starting-with-crate = "warn"
+deprecated-in-future = "warn"
+elided-lifetimes-in-paths = "warn"
+explicit-outlives-requirements = "warn"
+ffi-unwind-calls = "warn"
+keyword-idents = "warn"
+macro-use-extern-crate = "warn"
+meta-variable-misuse = "warn"
+missing-abi = "warn"
+missing-copy-implementations = "warn"
+missing-debug-implementations = "warn"
+non-ascii-idents = "warn"
+rust-2021-incompatible-closure-captures = "warn"
+rust-2021-incompatible-or-patterns = "warn"
+rust-2021-prefixes-incompatible-syntax = "warn"
+rust-2021-prelude-collisions = "warn"
+single-use-lifetimes = "warn"
+trivial-casts = "warn"
+trivial-numeric-casts = "warn"
+unit-bindings = "warn"
+unreachable-pub = "warn"
+unsafe-op-in-unsafe-fn = "warn"
+unstable-features = "warn"
+unused-extern-crates = "warn"
+unused-import-braces = "warn"
+unused-lifetimes = "warn"
+unused-macro-rules = "warn"
+unused-qualifications = "warn"
+unused-results = "warn"
+
+[lints.clippy]
+enum_glob_use = "deny"
+pedantic = { level = "deny", priority = -1 }
+nursery = { level = "deny", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
+perf = { level = "deny", priority = -1 }
+
+
+unwrap_used = "warn" # TODO should be deny at some point
+
+useless_let_if_seq = "allow" # TODO currently cause by OpenApi macro
+
+redundant_clone = "warn"
+cloned_instead_of_copied = "warn"
+expl_impl_clone_on_copy = "warn"
+unnecessary_cast = "warn"
+cast_lossless = "warn"
+ptr_as_ptr = "warn"
+mut_mut = "warn"
+char_lit_as_u8 = "warn"
+dbg_macro = "warn"
+empty_structs_with_brackets = "warn"
+get_unwrap = "warn"
+negative_feature_names = "warn"
+pub_without_shorthand = "warn"
+rc_buffer = "warn"
+rc_mutex = "warn"
+redundant_feature_names = "warn"
+redundant_type_annotations = "warn"
+rest_pat_in_fully_bound_structs = "warn"
+str_to_string = "warn"
+string_to_string = "warn"
+tests_outside_test_module = "warn"
+undocumented_unsafe_blocks = "warn"
+unneeded_field_pattern = "warn"
+unseparated_literal_suffix = "warn"
+wildcard_dependencies = "warn"
+or_fun_call = "warn"
+unnecessary_lazy_evaluations = "warn"
+assertions_on_result_states = "warn"
+default_union_representation = "warn"
+deref_by_slicing = "warn"
+empty_drop = "warn"
+filetype_is_file = "warn"
+float_cmp_const = "warn"
+format_push_string = "warn"
+impl_trait_in_params = "warn"
+lossy_float_literal = "warn"
+mem_forget = "warn"
+missing_assert_message = "warn"
+mutex_atomic = "warn"
+semicolon_outside_block = "warn"
+fn_to_numeric_cast = "warn"
+fn_to_numeric_cast_with_truncation = "warn"
+string_lit_chars_any = "warn"
+suspicious_xor_used_as_pow = "warn"
+try_err = "warn"
+unnecessary_safety_comment = "warn"
+unnecessary_safety_doc = "warn"
+unnecessary_self_imports = "warn"
+verbose_file_reads = "warn"
+cast_possible_wrap = "warn"
+redundant_closure_for_method_calls = "warn"
+large_futures = "warn"
+semicolon_if_nothing_returned = "warn"
+match_bool = "warn"
+struct_excessive_bools = "warn"
+must_use_candidate = "warn"
+collapsible_else_if = "warn"
+inconsistent_struct_constructor = "warn"
+manual_string_new = "warn"
+zero_sized_map_values = "warn"
+unnecessary_box_returns = "warn"
+map_unwrap_or = "warn"
+implicit_clone = "warn"
+match_wildcard_for_single_variants = "warn"
+unnecessary_wraps = "warn"
+match_same_arms = "warn"
+ignored_unit_patterns = "warn"
+redundant_else = "warn"
+explicit_into_iter_loop = "warn"
+used_underscore_binding = "warn"
+needless_pass_by_value = "warn"
+too_many_lines = "warn"
+let_underscore_untyped = "warn"
+single_match = "warn"
+single_match_else = "warn"
+explicit_deref_methods = "warn"
+explicit_iter_loop = "warn"
+manual_let_else = "warn"
+arithmetic_side_effects = "warn"
+as_conversions = "warn"
+fn_to_numeric_cast_any = "warn"
+let_underscore_must_use = "warn"
