@@ -7,6 +7,7 @@ description = "Generates luals definition files from NeoDoc json output"
 repository = "https://github.com/TTT-2/neodoc-luals-definition-gen"
 license = "MIT"
 publish = false
+rust-version = "1.70"
 
 [dependencies]
 
