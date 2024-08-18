@@ -11,6 +11,8 @@ use tracing::{error, info, warn};
 pub mod neodoc_parser;
 use neodoc_parser::{neodoc_to_func_definition, read_neodoc_json, LuaModuleFile};
 
+const USAGE_HELP: &str = "Usage: neodoc-luals-definition-gen <INPUT_DIR> <OUTPUT_DIR>";
+
 fn init_tracing() {
     tracing_subscriber::fmt()
         .without_time()
@@ -21,6 +23,11 @@ fn init_tracing() {
 
 fn handle_args() -> (fs::ReadDir, String) {
     let args: Vec<String> = env::args().collect();
+    if args.len() != 2 {
+        error!("Mismatched amount of arguments");
+        println!("{USAGE_HELP}");
+        std::process::exit(1)
+    }
     let input_dir = match fs::read_dir(&args[1]) {
         Ok(input_dir) => input_dir,
         Err(e) => {
