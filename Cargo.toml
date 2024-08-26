@@ -93,10 +93,7 @@ nursery = { level = "deny", priority = -1 }
 suspicious = { level = "deny", priority = -1 }
 perf = { level = "deny", priority = -1 }
 
-
 unwrap_used = "warn" # TODO should be deny at some point
-
-useless_let_if_seq = "allow" # TODO currently cause by OpenApi macro
 
 redundant_clone = "warn"
 cloned_instead_of_copied = "warn"
@@ -180,3 +177,4 @@ arithmetic_side_effects = "warn"
 as_conversions = "warn"
 fn_to_numeric_cast_any = "warn"
 let_underscore_must_use = "warn"
+useless_let_if_seq = "warn"
