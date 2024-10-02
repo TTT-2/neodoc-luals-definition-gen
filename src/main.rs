@@ -23,7 +23,7 @@ fn init_tracing() {
 
 fn handle_args() -> (fs::ReadDir, String) {
     let args: Vec<String> = env::args().collect();
-    if args.len() != 2 {
+    if args.len() != 3 {
         error!("Mismatched amount of arguments");
         println!("{USAGE_HELP}");
         std::process::exit(1)
