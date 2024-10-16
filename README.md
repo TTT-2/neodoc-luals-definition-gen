@@ -13,7 +13,7 @@ More or less WIP but working so far.
 - Output definition files aren't validated for correctness
 - Terrible binary name
 
-Developed against [NeoDoc](https://github.com/TTT-2/NeoDoc) v0.1.6
+Developed against [NeoDoc](https://github.com/TTT-2/NeoDoc) v0.2.0
 
 ## Usage
 
