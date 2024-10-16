@@ -80,9 +80,7 @@ fn neodoc_to_lua_return(freturns: Option<Vec<NeodocFuncReturn>>) -> Option<LuaFu
 }
 
 fn join_description(descriptions: Option<Vec<NeodocFuncDescription>>) -> String {
-    descriptions.map_or_else(String::new, |expr| {
-        expr.first().map_or_else(String::new, |x| x.text.clone())
-    })
+    descriptions.map_or_else(String::new, |x| x.iter().map(|y| y.text.clone()).collect())
 }
 
 fn join_param_list(params: Option<Vec<NeodocFuncParam>>) -> String {
