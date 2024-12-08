@@ -42,21 +42,22 @@ pub fn neodoc_to_func_definition(nfd: NeodocFuncDefinition) -> LuaFuncDefinition
         r#return: neodoc_to_lua_return(nfd.params.r#return),
         r#_type: nfd.r#type,
         github_source: get_github_source(&nfd.source),
-        params: neodoc_to_lua_params(&nfd.params.param),
+        params: neodoc_to_lua_params(nfd.params.param.as_ref()),
         package: nfd.params.internal,
         deprecated: nfd.params.deprecated,
         description: join_description(nfd.params.desc),
-        param_list: join_param_list(nfd.params.param),
+        param_list: join_param_list(nfd.params.param.as_ref()),
     }
 }
 
-fn neodoc_to_lua_params(params: &Option<Vec<NeodocFuncParam>>) -> Option<Vec<LuaFuncParam>> {
+fn neodoc_to_lua_params(params: Option<&Vec<NeodocFuncParam>>) -> Option<Vec<LuaFuncParam>> {
     match params {
         Some(params) => {
             let mut luafuncparams: Vec<LuaFuncParam> = vec![];
             for param in params {
                 let luafuncparam = LuaFuncParam {
-                    name: param.name.clone(),
+                    name: param.name.trim_end_matches('?').to_owned(),
+                    optional: param.name.ends_with('?'),
                     description: param.description.clone()?,
                     r#type: param.typs.join(", "),
                 };
@@ -83,11 +84,11 @@ fn join_description(descriptions: Option<Vec<NeodocFuncDescription>>) -> String 
     descriptions.map_or_else(String::new, |x| x.iter().map(|y| y.text.clone()).collect())
 }
 
-fn join_param_list(params: Option<Vec<NeodocFuncParam>>) -> String {
+fn join_param_list(params: Option<&Vec<NeodocFuncParam>>) -> String {
     params.map_or_else(String::new, |params| {
         let mut namelist = vec![];
         for param in params {
-            namelist.push(param.name);
+            namelist.push(param.name.trim_end_matches('?').to_owned());
         }
         namelist.join(", ")
     })
@@ -152,6 +153,7 @@ pub struct NeodocFuncDefinition {
 #[derive(Debug)]
 struct LuaFuncParam {
     name: String,
+    optional: bool,
     r#type: String,
     description: String,
 }

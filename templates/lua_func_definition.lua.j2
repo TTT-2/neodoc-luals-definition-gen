@@ -21,7 +21,7 @@
 {% match function.params -%}
 {%- when Some with (params) -%}
 {%- for param in params -%}
----@param {{ param.name }} {{ param.type }} {{ param.description }}
+---@param {{ param.name }}{% if param.optional %}?{% endif %} {{ param.type }} {{ param.description }}
 {% endfor %}
 {%- when None -%}
 {%- endmatch %}
